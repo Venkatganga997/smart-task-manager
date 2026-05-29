@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+  }
+
+  datasource db {
+    provider = "postgresql"
+      url      = env("DATABASE_URL")
+      }
+
+      model User {
+        id           String   @id @default(cuid())
+          email        String   @unique
+            passwordHash String
+              createdAt    DateTime @default(now())
+                tasks        Task[]
+
+                  @@map("users")
+                  }
+
+                  model Task {
+                    id          String     @id @default(cuid())
+                      userId      String
+                        title       String
+                          description String?
+                            dueDate     DateTime?
+                              priority    Priority   @default(MEDIUM)
+                                status      TaskStatus @default(TODO)
+                                  tags        String[]
+                                    createdAt   DateTime   @default(now())
+                                      updatedAt   DateTime   @updatedAt
+
+                                        user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+                                          analysis TaskAnalysis?
+
+                                            @@index([userId, status])
+                                              @@map("tasks")
+                                              }
+
+                                              model TaskAnalysis {
+                                                id             String   @id @default(cuid())
+                                                  taskId         String   @unique
+                                                    priorityScore  Int
+                                                      effortEstimate Float
+                                                        category       String
+                                                          reasoning      String
+                                                            suggestedOrder Int
+                                                              tags           String[]
+                                                                createdAt      DateTime @default(now())
+                                                                  updatedAt      DateTime @updatedAt
+
+                                                                    task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+                                                                      @@map("task_analyses")
+                                                                      }
+
+                                                                      enum Priority {
+                                                                        LOW
+                                                                          MEDIUM
+                                                                            HIGH
+                                                                              URGENT
+                                                                              }
+
+                                                                              enum TaskStatus {
+                                                                                TODO
+                                                                                  IN_PROGRESS
+                                                                                    BLOCKED
+                                                                                      DONE
+                                                                                      }
